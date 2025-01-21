@@ -16,18 +16,13 @@ public class Flights {
   //  @Id
   //  @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightId;
-
-    @Column(unique = true, nullable = false)
     private String flightNumber;
-
     private String departure;
     private String arrival;
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
-
     private Double price;
     private Integer availableSeats;
-
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
 

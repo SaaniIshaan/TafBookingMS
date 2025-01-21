@@ -45,6 +45,14 @@ public class BookingController {
         return new ResponseEntity<List<Bookings>>(bookingServiceImpl.getBookingByUserId(userId), HttpStatus.OK);
     }
 
+    // Update booking (e.g., change status or flight)
+    @PutMapping("/{bookingId}")
+    public ResponseEntity<Bookings> updateBooking(@PathVariable Long bookingId, @RequestBody Bookings updatedBooking) {
+        Bookings updated = bookingServiceImpl.updateBooking(bookingId, updatedBooking);
+        return updated != null ? new ResponseEntity<>(updated, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
     @DeleteMapping("/{bookingId}")
     public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId) {
         bookingServiceImpl.cancelBooking(bookingId);

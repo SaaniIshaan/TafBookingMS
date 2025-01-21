@@ -51,6 +51,27 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<Bookings> getAllBookings() {
+        String bookingUrl = dataStoreServiceUrl + "/bookings";
+        Bookings[] bookings= restTemplate.getForObject(bookingUrl, Bookings[].class);
+        return Arrays.asList(bookings);
+
+    }
+
+    @Override
+    public Bookings updateBooking(Long bookingId, Bookings updatedBooking) {
+        String bookingUrl = dataStoreServiceUrl + "/bookings/" + bookingId;
+        restTemplate.put(bookingUrl, updatedBooking);
+        return updatedBooking;
+    }
+
+    @Override
+    public void deleteBooking(Long bookingId) {
+        String bookingUrl = dataStoreServiceUrl + "/bookings/" + bookingId + "/cancel";
+        restTemplate.put(bookingUrl, null);
+    }
+
+    @Override
     public void cancelBooking(Long bookingId) {
         Bookings booking = restTemplate.getForObject(dataStoreServiceUrl + "/bookings/" + bookingId, Bookings.class);
         if(booking != null && "Booked".equals(booking.getStatus())){
@@ -62,9 +83,8 @@ public class BookingServiceImpl implements BookingService {
         if(flight != null){
             flight.setAvailableSeats(flight.getAvailableSeats() + 1);
             restTemplate.put(flightUrl, flight);
-        }
 
-
+            }
         }
 
     }

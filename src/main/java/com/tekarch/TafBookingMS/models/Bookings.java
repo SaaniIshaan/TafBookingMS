@@ -10,17 +10,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Entity
 @Table(name = "bookings")
 public class Bookings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
-    @Column(nullable = false)
     private Long userId;
-    @Column(nullable = false)
     private Long flightId;
+    private String status; // e.g., Booked, Cancelled
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
  //   @ManyToOne
  //   @JoinColumn(name = "userId", nullable = false)
@@ -29,10 +29,9 @@ public class Bookings {
 //    @JoinColumn(name = "flightId", nullable = false)
  //   private Flights flight;
 
-    private String status; // e.g., Booked, Cancelled
 
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime updatedAt;
+
+
 
 
 }
