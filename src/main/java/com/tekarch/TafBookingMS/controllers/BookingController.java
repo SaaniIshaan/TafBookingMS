@@ -1,6 +1,6 @@
 package com.tekarch.TafBookingMS.controllers;
 
-import com.tekarch.TafBookingMS.models.Bookings;
+import com.tekarch.TafBookingMS.models.BookingsDTO;
 import com.tekarch.TafBookingMS.services.BookingServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,14 +25,14 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<Bookings> createBooking(@RequestBody Bookings booking) {
-        Bookings createdBooking = bookingServiceImpl.createABooking(booking);
+    public ResponseEntity<BookingsDTO> createBooking(@RequestBody BookingsDTO booking) {
+        BookingsDTO createdBooking = bookingServiceImpl.createABooking(booking);
         return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
-    @GetMapping("/bookingId")
-    public ResponseEntity<Bookings> getBookingById(@PathVariable Long bookingId) {
-        Bookings booking = bookingServiceImpl.getABookingById(bookingId);
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<BookingsDTO> getBookingById(@PathVariable Long bookingId) {
+        BookingsDTO booking = bookingServiceImpl.getABookingById(bookingId);
         if (booking != null) {
             return new ResponseEntity<>(booking, HttpStatus.OK);
         }
@@ -40,23 +40,32 @@ public class BookingController {
     //    return new ResponseEntity<>(booking, HttpStatus.OK);
     }
 
+    // Get all bookings
+    @GetMapping
+    public ResponseEntity<List<BookingsDTO>> getAllBookings() {
+        List<BookingsDTO> bookings = bookingServiceImpl.getAllBookings();
+        return new ResponseEntity<>(bookings, HttpStatus.OK);
+    }
+
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<Bookings>> getBookingByUserId(@PathVariable Long userId) {
-        return new ResponseEntity<List<Bookings>>(bookingServiceImpl.getBookingByUserId(userId), HttpStatus.OK);
+    public ResponseEntity<List<BookingsDTO>> getBookingByUserId(@PathVariable Long userId) {
+        return new ResponseEntity<List<BookingsDTO>>(bookingServiceImpl.getBookingByUserId(userId), HttpStatus.OK);
     }
 
     // Update booking (e.g., change status or flight)
     @PutMapping("/{bookingId}")
-    public ResponseEntity<Bookings> updateBooking(@PathVariable Long bookingId, @RequestBody Bookings updatedBooking) {
-        Bookings updated = bookingServiceImpl.updateBooking(bookingId, updatedBooking);
+    public ResponseEntity<BookingsDTO> updateBooking(@PathVariable Long bookingId, @RequestBody BookingsDTO updatedBooking) {
+        BookingsDTO updated = bookingServiceImpl.updateBooking(bookingId, updatedBooking);
         return updated != null ? new ResponseEntity<>(updated, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{bookingId}")
-    public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId) {
+    public ResponseEntity<String> cancelBooking(@PathVariable Long bookingId) {
         bookingServiceImpl.cancelBooking(bookingId);
-        return ResponseEntity.noContent().build();
+        String message = "Booking with ID " + bookingId + " has been successfully deleted";
+        return ResponseEntity.ok(message);
+    //    return ResponseEntity.noContent().build();
     }
 
 /*    @DeleteMapping("/{bookingId}")

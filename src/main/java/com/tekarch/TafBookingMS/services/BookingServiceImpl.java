@@ -1,8 +1,7 @@
 package com.tekarch.TafBookingMS.services;
 
-import com.tekarch.TafBookingMS.models.Bookings;
-import com.tekarch.TafBookingMS.models.Flights;
-import lombok.AllArgsConstructor;
+import com.tekarch.TafBookingMS.models.BookingsDTO;
+import com.tekarch.TafBookingMS.models.FlightsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class BookingServiceImpl implements BookingService {
@@ -25,41 +23,59 @@ public class BookingServiceImpl implements BookingService {
         this.restTemplate = restTemplate;
     }
 
-    @Override
-    public Bookings createABooking(Bookings booking) {
+ /*   @Override
+    public BookingsDTO createABooking(BookingsDTO booking) {
         String flightUrl = dataStoreServiceUrl + "/flights/" + booking.getFlightId();
-        Flights flight = restTemplate.getForObject(flightUrl, Flights.class);
+        FlightsDTO flight = restTemplate.getForObject(flightUrl, FlightsDTO.class);
 
         if(flight != null && flight.getAvailableSeats() > 0) {
             flight.setAvailableSeats(flight.getAvailableSeats() - 1);
             restTemplate.put(flightUrl, flight);
-            return restTemplate.postForObject(dataStoreServiceUrl + "/bookings", booking, Bookings.class);
+            return restTemplate.postForObject(dataStoreServiceUrl + "/bookings", booking, BookingsDTO.class);
         }
         throw new RuntimeException("flight is fully booked or not available");
 
-    }
+    }*/
 
     @Override
-    public Bookings getABookingById(Long bookingId) {
-        return restTemplate.getForObject(dataStoreServiceUrl + "/bookings/" + bookingId, Bookings.class);
-    }
+    public BookingsDTO createABooking(BookingsDTO booking) {
+        // Correctly call the availableSeats endpoint in TafDatastoreService
+        String flightUrl = dataStoreServiceUrl + "/flights/" + booking.getFlightId();  // Ensure the correct URL path
+        Integer availableSeats = restTemplate.getForObject(flightUrl + "/availableSeats", Integer.class);
 
-    @Override
-    public List<Bookings> getBookingByUserId(Long userId) {
-        Bookings[] bookings = restTemplate.getForObject(dataStoreServiceUrl + "/bookings/users/" + userId, Bookings[].class);
-        return Arrays.asList(bookings);
-    }
+        if (availableSeats == null || availableSeats <= 0) {
+            throw new RuntimeException("Flight is fully booked or not available.");
+        }
 
-    @Override
-    public List<Bookings> getAllBookings() {
+        // Reduce the available seats by calling the endpoint in TafDatastoreService (ensure it's only called once)
+        restTemplate.put(flightUrl + "/reduceSeats", null);
+
+        // Create the booking in TafDatastoreService
         String bookingUrl = dataStoreServiceUrl + "/bookings";
-        Bookings[] bookings= restTemplate.getForObject(bookingUrl, Bookings[].class);
+        return restTemplate.postForObject(bookingUrl, booking, BookingsDTO.class);
+    }
+
+    @Override
+    public BookingsDTO getABookingById(Long bookingId) {
+        return restTemplate.getForObject(dataStoreServiceUrl + "/bookings/" + bookingId, BookingsDTO.class);
+    }
+
+    @Override
+    public List<BookingsDTO> getBookingByUserId(Long userId) {
+        BookingsDTO[] bookings = restTemplate.getForObject(dataStoreServiceUrl + "/bookings/users/" + userId, BookingsDTO[].class);
+        return Arrays.asList(bookings);
+    }
+
+    @Override
+    public List<BookingsDTO> getAllBookings() {
+        String bookingUrl = dataStoreServiceUrl + "/bookings";
+        BookingsDTO[] bookings= restTemplate.getForObject(bookingUrl, BookingsDTO[].class);
         return Arrays.asList(bookings);
 
     }
 
     @Override
-    public Bookings updateBooking(Long bookingId, Bookings updatedBooking) {
+    public BookingsDTO updateBooking(Long bookingId, BookingsDTO updatedBooking) {
         String bookingUrl = dataStoreServiceUrl + "/bookings/" + bookingId;
         restTemplate.put(bookingUrl, updatedBooking);
         return updatedBooking;
@@ -73,13 +89,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public void cancelBooking(Long bookingId) {
-        Bookings booking = restTemplate.getForObject(dataStoreServiceUrl + "/bookings/" + bookingId, Bookings.class);
+        BookingsDTO booking = restTemplate.getForObject(dataStoreServiceUrl + "/bookings/" + bookingId, BookingsDTO.class);
         if(booking != null && "Booked".equals(booking.getStatus())){
             booking.setStatus("Cancelled");
             restTemplate.put(dataStoreServiceUrl + "/bookings/" + bookingId, booking);
 
         String flightUrl = dataStoreServiceUrl + "/flights/" + booking.getFlightId();
-        Flights flight = restTemplate.getForObject(flightUrl,Flights.class);
+        FlightsDTO flight = restTemplate.getForObject(flightUrl, FlightsDTO.class);
         if(flight != null){
             flight.setAvailableSeats(flight.getAvailableSeats() + 1);
             restTemplate.put(flightUrl, flight);
